@@ -1,22 +1,25 @@
-package org.example;
+package org.example.service;
 
 import org.example.model.Comment;
+import org.example.processor.CommentProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CommentService {
 
-    private final CommentRepository commentRepository;
-    private final CommentNotificationProxy commentNotificationProxy;
+    @Autowired
+    private ApplicationContext context;
 
-    public CommentService(CommentRepository commentRepository, @Qualifier("EMAIL")CommentNotificationProxy commentNotificationProxy) {
-        this.commentRepository = commentRepository;
-        this.commentNotificationProxy = commentNotificationProxy;
+    public void sendComment(Comment comment){
+        CommentProcessor commentProcessor = context.getBean(CommentProcessor.class);
+        commentProcessor.setComment(comment);
+        commentProcessor.processComment(comment);
+        commentProcessor.validateComment(comment);
+
+        System.out.println("CommentService: " + comment.getText());
     }
 
-    public void publishComment(Comment comment){
-        commentRepository.storeComment(comment);
-        commentNotificationProxy.sendComment(comment);
-    }
 }
